@@ -1,0 +1,9 @@
+.settings
+.env
+/node_modules
+/dist
+*.log
+#Meld orig files
+**/*.orig
+coverage.html
+/.env
