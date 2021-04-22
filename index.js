@@ -15,7 +15,7 @@ client.once("ready", async () => {
 	const guild = client.guilds.cache.find((guild) => guild.name === "MillionNftWall");
 	const channel = guild.channels.cache.find((channel) => channel.name === "scalp-rtx");
 	console.log("Starting the scalp!");
-    startMaterielNetScalping(channel);
+	startMaterielNetScalping(channel);
 });
 
 client.on("message", (message) => {
@@ -29,7 +29,7 @@ client.on("message", (message) => {
 client.login(process.env.DISCORD_BOT_TOKEN);
 
 function startMaterielNetScalping(channel) {
-    channel.send("Starting the scalp! for materiel.net - refresh every minute");
+	// channel.send("Starting the scalp! for materiel.net - refresh every minute");
 	setInterval(() => {
 		getMaterielNetStock(channel, rtx3080Page);
 		getMaterielNetStock(channel, rtx3070Page);
@@ -82,22 +82,24 @@ async function getMaterielNetStock(channel, rtxShoppingPage) {
 			const articleKeys = Object.keys(stockPrice.stock);
 			for (const articleKey of articleKeys) {
 				const previousAvailability = productAvailability.get(articleKey);
-				const newAvailability = stockPrice.stock[articleKey].indexOf("Rupture") === -1;
+				const stockStatus = cheerio.load(stockPrice.stock[articleKey]).text();
+				const newAvailability = stockStatus.indexOf("Rupture") === -1;
 				productAvailability.set(articleKey, newAvailability);
-				if (previousAvailability !== newAvailability) {
+				if (typeof previousAvailability !== "undefined" && previousAvailability !== newAvailability) {
 					const articleRawId = articleKey.split("AR")[1];
 					const price = cheerio.load(stockPrice.price[articleKey]).text();
-					if(newAvailability === true){
-						channel.send(`Graphic card is in stock: https://www.materiel.net/produit/${articleRawId}.html at price ${price}`);
-					}else{
-						channel.send(`Graphic card is out of stock: https://www.materiel.net/produit/${articleRawId}.html at price ${price}`);
+					let message = `Graphic card is out of stock: https://www.materiel.net/produit/${articleRawId}.html at price ${price} | status: ${stockStatus}`;
+					if (newAvailability === true) {
+						message = `Graphic card is in stock: https://www.materiel.net/produit/${articleRawId}.html at price ${price} | status: ${stockStatus}`;
 					}
+					channel.send(message);
+					console.log(message);
 				}
 			}
 		}
 	} catch (err) {
 		console.log(err);
-	} finally{
+	} finally {
 		console.log(`Completed stock check for: ${rtxShoppingPage}`);
 	}
 }
