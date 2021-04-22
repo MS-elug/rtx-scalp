@@ -42,6 +42,7 @@ function startMaterielNetScalping(channel) {
 
 async function getMaterielNetStock(channel, rtxShoppingPage) {
 	try {
+		console.log(`Check stock value for: ${rtxShoppingPage}`);
 		const defaultHeaders = {
 			origin: "https://www.materiel.net",
 			"cache-control": "no-cache",
@@ -83,14 +84,20 @@ async function getMaterielNetStock(channel, rtxShoppingPage) {
 				const previousAvailability = productAvailability.get(articleKey);
 				const newAvailability = stockPrice.stock[articleKey].indexOf("Rupture") === -1;
 				productAvailability.set(articleKey, newAvailability);
-				if (previousAvailability !== newAvailability && newAvailability === true) {
+				if (previousAvailability !== newAvailability) {
 					const articleRawId = articleKey.split("AR")[1];
 					const price = cheerio.load(stockPrice.price[articleKey]).text();
-					channel.send(`Graphic card is in stock: https://www.materiel.net/produit/${articleRawId}.html at price ${price}`);
+					if(newAvailability === true){
+						channel.send(`Graphic card is in stock: https://www.materiel.net/produit/${articleRawId}.html at price ${price}`);
+					}else{
+						channel.send(`Graphic card is out of stock: https://www.materiel.net/produit/${articleRawId}.html at price ${price}`);
+					}
 				}
 			}
 		}
 	} catch (err) {
 		console.log(err);
+	} finally{
+		console.log(`Completed stock check for: ${rtxShoppingPage}`);
 	}
 }
