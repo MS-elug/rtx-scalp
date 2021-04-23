@@ -14,8 +14,8 @@ function startScalping() {
 	// channel.send("Starting the scalp! for materiel.net - refresh every minute");
 	function runScalping() {
 		getStock(subject, rtx3080Page);
-		getStock(subject, rtx3070Page);
-		getStock(subject, rtx3060Page);
+		//getStock(subject, rtx3070Page);
+		//getStock(subject, rtx3060Page);
 		setTimeout(() => {
 			runScalping();
 		}, 60000 + Math.floor(Math.random() * 10000));
