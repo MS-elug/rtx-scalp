@@ -1,6 +1,11 @@
 require("dotenv").config();
+
+const { merge } = require("rxjs");
+
 const startMaterielNetScalping = require("./scalp-runner/materiel-net").startScalping;
+const bookMaterielNetProduct = require("./scalp-order/materiel-net").bookProduct;
 const startSmidistriScalping = require("./scalp-runner/smidistri").startScalping;
+
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
@@ -21,15 +26,22 @@ try {
 					return member.user.username === "makidomaki";
 				})
 				.map((member) => member.user.id);
-				
-			startMaterielNetScalping().subscribe((message) => {
-				channel.send(message + `<@${usersToNotify[0]}>`);
-				console.log(message);
-			});
 
-			startSmidistriScalping().subscribe((message) => {
-				channel.send(message);
-				console.log(message);
+			merge(startMaterielNetScalping(), startSmidistriScalping()).subscribe((scalp) => {
+				channel.send(scalp.message + `<@${usersToNotify[0]}>`);
+				console.log(scalp);
+				if (
+					typeof scalp.productTile === "string" &&
+					typeof scalp.url === "string" &&
+					(scalp.productTile.toLowerCase().indexOf("msi") !== -1 || scalp.productTile.toLowerCase().indexOf("asus") !== -1) &&
+					process.env.MATERIEL_NET_PASSWORD &&
+					process.env.MATERIEL_NET_EMAIL
+				) {
+					if (scalp.src === "materiel.net") {
+						console.log(`Starting a browser session to prepare the order`);
+						bookMaterielNetProduct(scalp.url);
+					}
+				}
 			});
 		} catch (err) {
 			console.error(err);

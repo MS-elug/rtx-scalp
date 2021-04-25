@@ -8,6 +8,7 @@
 		"start:dev": "nodemon index.js"
 	},
 	"dependencies": {
+		"@wdio/cli": "^7.5.1",
 		"axios": "^0.21.1",
 		"cheerio": "^1.0.0-rc.6",
 		"discord.js": "^12.5.3",

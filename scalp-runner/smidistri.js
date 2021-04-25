@@ -36,8 +36,9 @@ async function getStock(subject, rtxShoppingPage) {
 		const avail = (await axios.get(rtxShoppingPage, { responseType: "text", headers: { ...defaultHeaders } })).data;
 		const $ = cheerio.load(avail);
 		$(".ajax_block_product.item").each(function (i, elem) {
-			const link = $("a.product_img_link", elem).attr("href");
-			const articleKey = link;
+			const url = $("a.product_img_link", elem).attr("href");
+			const productTile = $("a.product_img_link", elem).attr("title");
+			const articleKey = url;
 			const stockStatus = $(".stocks #dispolettres", elem).text();
 			let price = $(".prices .prix-avecReduc", elem).text();
 			if (!price) {
@@ -48,11 +49,11 @@ async function getStock(subject, rtxShoppingPage) {
 			const available = stockStatus.indexOf("En arrivage") === -1;
 			productStockStatus.set(articleKey, stockStatus);
 			if (typeof previousStockStatus === "string" && previousStockStatus !== stockStatus) {
-				let message = `Graphic card is out of stock: ${link} at price ${price} | status: ${stockStatus}`;
+				let message = `Graphic card is out of stock: ${url} at price ${price} | status: ${stockStatus}`;
 				if (available) {
-					message = `Graphic card is in stock: ${link} at price ${price} | status: ${stockStatus}`;
+					message = `Graphic card is in stock: ${url} at price ${price} | status: ${stockStatus}`;
 				}
-				subject.next(message);
+				subject.next({ src: "smidistri", message, url, productTile });
 			}
 		});
 	} catch (err) {

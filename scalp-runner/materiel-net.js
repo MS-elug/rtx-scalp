@@ -39,7 +39,7 @@ async function getStock(subject, rtxShoppingPage) {
 		const matches = avail.match(/dataLayout\.offerListJson[\s]?=[\s]?({.*})/);
 		if (matches && matches.length === 2) {
 			const offerListJson = JSON.parse(matches[1]);
-
+			const $ = cheerio.load(avail);
 			const body = {
 				json: JSON.stringify({ ...offerListJson, shops: [{ shopId: -1 }] }),
 				shopId: -1,
@@ -73,11 +73,13 @@ async function getStock(subject, rtxShoppingPage) {
 				if (typeof previousStockStatus === "string" && previousStockStatus !== stockStatus) {
 					const articleRawId = articleKey.split("AR")[1];
 					const price = cheerio.load(stockPrice.price[articleKey]).text();
+					const productTitle = $(`li[data-offer-id="${articleKey}"] .c-product__meta .c-product__title`).text();
+					const url = `https://www.materiel.net/produit/${articleRawId}.html`;
 					let message = `Graphic card is out of stock: https://www.materiel.net/produit/${articleRawId}.html at price ${price} | status: ${stockStatus}`;
 					if (available) {
 						message = `Graphic card is in stock: https://www.materiel.net/produit/${articleRawId}.html at price ${price} | status: ${stockStatus}`;
 					}
-					subject.next(message);
+					subject.next({ src: "materiel.net", message, url, productTitle });
 				}
 			}
 		}
